@@ -1,4 +1,8 @@
 import csv
+import json
+import sys
+import xml.etree.ElementTree as ET
+import logging
 from pathlib import Path
 
 csv_folder = Path(__file__).parent/"ideas_for_test"/"work_with_csv"
@@ -44,3 +48,48 @@ with open(new_file_csv, "w", encoding="utf-8", newline="") as f:
 #         print(row)
 """ перевірила чим відрізняються строки,
 щоб привести їх в однаковий вигляд і тоді дійсно видалити дублікат"""
+
+
+json_folder = Path(__file__).parent/"ideas_for_test"/"work_with_json"
+
+json_loger = logging.getLogger("json_file_checking")
+json_loger.setLevel(logging.ERROR)
+file_handler = logging.FileHandler(Path(__file__).parent/"json_medvedchuk.log", encoding="utf-8")
+json_loger.addHandler(file_handler)
+
+
+for file in json_folder.iterdir():
+    try:
+        with open(file, "r", encoding="utf-8") as f:
+            json.load(f)
+    except json.JSONDecodeError:
+        json_loger.error(f"Цей файл є невалідним {file.name} ")
+
+
+xml_file = Path(__file__).parent/"ideas_for_test"/"work_with_xml"/"groups.xml"
+
+tree = ET.parse(xml_file)
+root = tree.getroot()
+
+
+def find_incoming_for_number(number):
+    for group in root:
+        if group.find("number").text == str(number):
+            incoming_group = group.find("timingExbytes/incoming")
+            if incoming_group is None:
+                return None
+            return incoming_group.text
+
+xml_logger = logging.getLogger("xml_file_checking")
+xml_logger.setLevel(logging.INFO)
+console_handler = logging.StreamHandler()
+xml_logger.addHandler(console_handler)
+
+
+number = 2
+result = find_incoming_for_number(number)
+xml_logger.info(f"Group {number}, timingExbytes/incoming {result}")
+
+
+
+
